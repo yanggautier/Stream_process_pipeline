@@ -5,27 +5,18 @@ from kafka.errors import KafkaError
 from create_tickets import generate_ticket
 from create_topic import create_topic_if_not_exists
 
-def send_messag(topic_name, max_retries):
+def send_messag(topic_name):
     """
     Envoie de message dans le topic indiqué
     """
-    producer = None
-    # Tentatives de connexion avec retry
-    for i in range(max_retries):
-        try:
-            producer = KafkaProducer(
-                bootstrap_servers=["redpanda-0:9092", "redpanda-1:9092", "redpanda-2:9092"],
-                value_serializer=lambda m: json.dumps(m).encode('ascii'),
-                retries=5
-            )
-            print("Successfully connected to Redpanda cluster")
-            break
-        except Exception as e:
-            if i == max_retries - 1:
-                print(f"Failed to connect after {max_retries} attempts")
-                raise
-            print(f"Connection attempt {i+1} failed, retrying...")
-            time.sleep(5)
+
+    producer = KafkaProducer(
+        bootstrap_servers=["redpanda-0:9092", "redpanda-1:9092", "redpanda-2:9092"],
+        value_serializer=lambda m: json.dumps(m).encode('ascii'),
+        retries=5
+    )
+    print("Successfully connected to Redpanda cluster")
+
 
     # Création de topic s'il n'existe pas encore
     create_topic_if_not_exists(topic_name)
@@ -60,7 +51,6 @@ def send_messag(topic_name, max_retries):
 if __name__ == "__main__":
     # Attendre un peu que les brokers soient prêts
     time.sleep(10)
-    
+
     topic_name = "client_tickets"
-    max_retries = 5
-    send_messag(topic_name, max_retries)
+    send_messag(topic_name)

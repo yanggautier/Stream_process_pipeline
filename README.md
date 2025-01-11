@@ -32,11 +32,6 @@ flowchart LR
     
     SS -->|Stockage| AWS[(AWS S3)]
     AWS -->|Lecture| J[Jupyter Notebook]
-    
-    style Redpanda fill:#f9d9d9,stroke:#ff0000
-    style Spark fill:#d9f9f9,stroke:#0000ff
-    style AWS fill:#f9f9d9,stroke:#999900
-    style J fill:#d9f9d9,stroke:#00ff00
 ```
 
 Ce schéma montre comment :
