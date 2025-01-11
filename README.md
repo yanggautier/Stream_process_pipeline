@@ -68,7 +68,7 @@ Ce schéma montre comment :
 
 4. **Accès et Surveillance**
    - Console Redpanda : `http://localhost:8080`
-   - Interface Spark Master : `http://localhost:8090`
+   - Interface Spark Master : `http://localhost:8081`
    - Jupyter Notebook : `http://localhost:8888`
 
 5. **Analyser les Résultats**
@@ -120,10 +120,5 @@ Le fichier docker-compose.yml définit plusieurs services :
 
 Chaque service est configuré avec les réseaux, volumes et dépendances appropriés pour assurer une communication correcte et un flux de données fluide à travers la pipeline.
 
-## Contribution
-
-N'hésitez pas à soumettre des problèmes et des demandes d'amélioration !
-
-## Licence
-
-MIT
+## Démonstration
+[Regarder la vidéo Loom](https://www.loom.com/share/3394de6ea50744d59c21ad510c370243?sid=8fdb3368-a615-4b47-b9a0-3c5b5ed0ce18)

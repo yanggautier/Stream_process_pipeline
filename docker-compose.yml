@@ -117,15 +117,41 @@ services:
     image: bitnami/spark:latest
     container_name: spark-master
     environment:
+      # Configuration de base
       - SPARK_MODE=master
+      # Configuration de la mémoire
+      - SPARK_MASTER_MEMORY=4G               # Mémoire pour le master
+      - SPARK_DAEMON_MEMORY=1G               # Mémoire pour les processus daemon
+      # Paramètres de résilience
+      - SPARK_MASTER_RECOVERY_MODE=ZOOKEEPER # Pour la haute disponibilité
+      - SPARK_MASTER_RECOVERY_DIRECTORY=/recovery
+      - SPARK_NETWORK_TIMEOUT=800s
+      # Paramètres de sécurité
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
       - SPARK_RPC_ENCRYPTION_ENABLED=no
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
+      # Configuration des ports
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
     ports:
-      - '8090:8080'
+      - "8081:8080"  # Web UI
+      - "7077:7077"  # Master port
+    volumes:
+      - spark_master_data:/recovery
     networks:
       - redpanda_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 5G
+        reservations:
+          memory: 4G
 
   spark-worker:
     image: bitnami/spark:latest
@@ -133,16 +159,43 @@ services:
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=1G
-      - SPARK_WORKER_CORES=1
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
+      # Mémoire et CPU
+      - SPARK_WORKER_MEMORY=4G    # Mémoire totale disponible pour le worker
+      - SPARK_WORKER_CORES=2      # Nombre total de cœurs CPU pour le worker
+      - SPARK_DAEMON_MEMORY=1G    # Mémoire réservée pour les processus daemon Spark
+      - SPARK_EXECUTOR_MEMORY=3G  # Mémoire allouée à chaque exécuteur Spark
+      - SPARK_EXECUTOR_CORES=2    # Nombre de cœurs par exécuteur
+      # Résilience
+      - SPARK_EXECUTOR_HEARTBEAT_INTERVAL=10s             # Fréquence des signaux de vie entre executeur et driver
+      - SPARK_NETWORK_TIMEOUT=800s                        # Délai maximum pour les opérations réseau
+      - SPARK_STORAGE_BLOCKMANAGER_HEARTBEAT_TIMEOUT=900s # Timeout pour le gestionnaire de blocs
+      - SPARK_TASK_MAXFAILURES=4                          # Nombre max de tentatives avant échec définitif
+      - SPARK_SPECULATION=true                            # Relance les tâches lentes sur d'autres executeurs
+      # Partitions
+      - SPARK_DEFAULT_PARALLELISM=8          # Nombre de partitions par défaut pour RDD
+      - SPARK_SQL_SHUFFLE_PARTITIONS=8       # Nombre de partitions pour les opérations shuffle
+      # Sécurité
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no          # Désactive l'authentification RPC
+      - SPARK_RPC_ENCRYPTION_ENABLED=no              # Désactive le chiffrement RPC
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no    # Désactive le chiffrement du stockage local
+      - SPARK_SSL_ENABLED=no                         # Désactive SSL
     depends_on:
       - spark-master
     networks:
       - redpanda_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+          cpus: '2'
+        reservations:
+          memory: 4G
+          cpus: '1'
 
   python_producer:
     container_name: python_producer
@@ -197,3 +250,4 @@ volumes:
   redpanda-0: 
   redpanda-1: 
   redpanda-2:
+  spark_master_data:
