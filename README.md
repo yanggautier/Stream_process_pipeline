@@ -26,11 +26,10 @@ flowchart LR
     R -->|Streaming| S[PySpark Consumer]
     
     subgraph Spark["Cluster Spark"]
-        S -->|Traitement| SP[Spark Worker]
-        SP -->|Résultats| SS[Spark Master]
+        S -->|Traitement| SP[Spark Streaming]
     end
     
-    SS -->|Stockage| AWS[(AWS S3)]
+    SP -->|Stockage| AWS[(AWS S3)]
     AWS -->|Lecture| J[Jupyter Notebook]
 ```
 
